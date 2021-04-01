@@ -1,0 +1,41 @@
+name: up
+base: core18 # the base snap is the execution environment for this snap
+adopt-info: up
+summary: Ultimate Plumber is a tool for writing Linux pipes with instant live preview
+description: |
+  up is the Ultimate Plumber, a tool for writing Linux pipes in a terminal-based
+  UI interactively, with instant live preview of command results.
+
+  The main goal of the Ultimate Plumber is to help interactively and
+  incrementally explore textual data in Linux, by making it easier to quickly
+  build complex pipelines, thanks to a fast feedback loop.
+  This is achieved by boosting any typical Linux text-processing utils such as
+  grep, sort, cut, paste, awk, wc, perl, etc., etc., by providing
+  a quick, interactive, scrollable preview of their results.
+
+grade: stable
+confinement: classic
+
+apps:
+  up:
+    command: up
+
+parts:
+  up:
+    source: https://github.com/akavel/up.git
+    plugin: go
+    override-pull: |
+      set -eu
+      snapcraftctl pull
+      last_committed_tag="$(git describe --tags --abbrev=0)"
+      last_committed_tag_ver="$(echo ${last_committed_tag} | sed 's/v//')"
+      last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "latest/beta:" { print $2 }')"
+      # If the latest tag from the upstream project has not been released to
+      # beta, build that tag instead of master.
+      if [ "${last_committed_tag_ver}" != "${last_released_tag}" ]; then
+        git fetch
+        git checkout "${last_committed_tag}"
+        cd ../src
+        git checkout "${last_committed_tag}"
+      fi
+      snapcraftctl set-version $(git -C ../src describe --tags  | sed 's/v//')
