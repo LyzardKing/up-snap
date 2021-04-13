@@ -14,11 +14,13 @@ description: |
   a quick, interactive, scrollable preview of their results.
 
 grade: stable
-confinement: classic
+confinement: strict
 
 apps:
   up:
     command: up
+    plugs:
+      - home
 
 parts:
   up:
